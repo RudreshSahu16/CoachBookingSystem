@@ -172,7 +172,7 @@ const BookSeats = async (req, res, next) => {
             coachNumber: coachNumber,
             userName: userName,
             seatBooked: temp,
-            totalSeats: 80
+            totalSeats: temp.length
         }
 
         // updating seats statuses to data base colllections
