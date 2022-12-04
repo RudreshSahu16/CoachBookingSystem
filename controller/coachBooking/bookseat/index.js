@@ -2,11 +2,12 @@ const { seatsdata, bookingDetails } = require("../../../models/mongoose");
 
 const BookSeats = async (req, res, next) => {
     try {
+        console.log("booking for seat started")
         seatsRequired = req.body.seatsRequired
         coachNumber = req.body.coachNumber
         userName = req.body.name
 
-
+        // check for coach Number not be empty
         if (coachNumber == '' || coachNumber == undefined) {
             const error = {
                 status: 400,
@@ -15,6 +16,7 @@ const BookSeats = async (req, res, next) => {
             }
             throw error;
         }
+        // check for Username not to be empty
         if (userName == '' || userName == undefined) {
             const error = {
                 status: 400,
@@ -23,14 +25,8 @@ const BookSeats = async (req, res, next) => {
             }
             throw error;
         }
-        if (seatsRequired <= 0 || seatsRequired > 7) {
-            const error = {
-                status: 400,
-                statusCode: "ERROR",
-                message: "please Enter valid number of seats(minimum should be 1 and maximum should be 7)."
-            }
-            throw error;
-        }
+
+        // checking seat required not to be null
         if (seatsRequired == '' || seatsRequired == undefined) {
             const error = {
                 status: 400,
@@ -41,8 +37,21 @@ const BookSeats = async (req, res, next) => {
         }
 
 
+        // checking for seat limit should be less than or equal to 7 or greater than 0
+        if (seatsRequired < 0 || seatsRequired > 7) {
+            const error = {
+                status: 400,
+                statusCode: "ERROR",
+                message: "please Enter valid number of seats(minimum should be 1 and maximum should be 7)."
+            }
+            throw error;
+        }
+
+        // find in seats statuses of given coach
         coachData = await seatsdata.findOne({ coachNumber: coachNumber })
         const seatsData = await seatsdata.findOne(req.query)
+
+        // check for coach data not to be empty
         if (seatsData == '' || seatsData == undefined) {
             const error = {
                 status: 400,
@@ -51,12 +60,14 @@ const BookSeats = async (req, res, next) => {
             }
             throw error;
         }
+
+        // seat Allocation Algo. for allocating seat to user
         seatArray = coachData.seatBooked
         seatStatus = coachData.seatsStatus
         bookedseats = seatArray
         temp = []
         seatArraylength = seatArray.length
-
+        // for continuous seat allocation
         for (var i = 0, len = seatArraylength; i < len - 1; i++) {
             seatArrayRowlength = seatArray[i].length
             if (7 - seatArrayRowlength >= seatsRequired) {
@@ -96,7 +107,7 @@ const BookSeats = async (req, res, next) => {
                 }
             }
         }
-
+        // allcating seat present with booked seats in a row 
         if (seatsRequired <= 3 && temp.length != seatsRequired) {
 
             limit = (7 * ((seatArraylength) - 1))
@@ -110,6 +121,7 @@ const BookSeats = async (req, res, next) => {
 
             }
         }
+        // minimum distance seat
         if ((temp.length) != seatsRequired) {
 
             count = 0
@@ -130,6 +142,7 @@ const BookSeats = async (req, res, next) => {
                     }
                 }
             }
+            // checking for all seat is booked or not
             if (temp.length == 0) {
                 const error = {
                     status: 200,
@@ -139,6 +152,8 @@ const BookSeats = async (req, res, next) => {
                 throw error;
 
             }
+
+            // check if allocating seat should be equal to required seats to book
             if (temp.length != seatsRequired) {
                 const error = {
                     status: 200,
@@ -148,10 +163,11 @@ const BookSeats = async (req, res, next) => {
                 throw error;
             }
         }
-
+        // changing status of seat Vacant to Booked state
         temp.map(item => {
             seatStatus[item] = 'Booked'
         })
+        // arranging data that to be share
         result = {
             coachNumber: coachNumber,
             userName: userName,
@@ -159,11 +175,15 @@ const BookSeats = async (req, res, next) => {
             totalSeats: 80
         }
 
+        // updating seats statuses to data base colllections
         const bookingDetail = new bookingDetails(result);
         const bookingData = await bookingDetail.save();
         const seatsChecks = await seatsdata.findByIdAndUpdate({ _id: coachData._id }, { 'seatsStatus': seatStatus, 'seatBooked': bookedseats }, { new: true });
 
+        // debuger
+        console.log("fianl result", seatsChecks);
 
+        // sending required data to client request through API response
         res.send({
             status: 200,
             statusCode: 'SUCCESS',
@@ -177,6 +197,8 @@ const BookSeats = async (req, res, next) => {
         });
 
     } catch (error) {
+        // debuger
+        console.log(error);
         next(error);
     }
 };
