@@ -40,7 +40,7 @@ const GetSeatStatus = async (req, res, next) => {
 
         });
         // debugger
-        console.log("final check ", data);
+        console.log("final check ",seatsData);
         // sending response to client side as API response
         res.send({
             status: 200,
