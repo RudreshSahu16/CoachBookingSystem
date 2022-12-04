@@ -46,7 +46,7 @@ app.use(async (err, req, res, next) => {
 // for port Listening 
 console.log("started")
 const Port = process.env.PORT;
-console.log(PORT)
+console.log(Port,process.env.PORT)
 app.listen(Port, () => {
     console.log(` Server running onm Port ${Port}`)
 });
